@@ -8,42 +8,17 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
   // 🧠 Use Axios to GET learners and mentors.
   // ❗ Use the variables `mentors` and `learners` to store the data.
   // ❗ Use the await keyword when using axios.
-  const axios = ('axios');
 
-  let mentors = []; 
-  let learners = []; 
-  
-  async function fetchData() {
-    try {
-      
-      const learnersResponse = await axios.get('http://localhost:3003/learnerscard');
-      const mentorsResponse = await axios.get('http://localhost:3003/mentors');
-  
-     
-      learners = learnersResponse.data;
-      mentors = mentorsResponse.data;
-  
-    
-    } catch (error) {
-      
-    }
-  }
-  
-  
-  fetchData();
+  let mentors = await axios.get("http://localhost:3003/api/mentors")
+  let learners = await axios.get("http://localhost:3003/api/learners")
+
+  let mentorsRes = mentors.data;
+  let learnersRes = learners.data;
 
   // 👆 ==================== TASK 1 END ====================== 👆
 
   // 👇 ==================== TASK 2 START ==================== 👇
-  const mentorMap = mentors.reduce((acc, mentor) => {
-    acc[mentor.id] = mentor.fullName;
-    return acc;
-  }, {});
 
-  learners = learners.map(learner => ({
-    ...learner,
-    mentors: learner.mentors.map(mentorId => mentorMap[mentorId])
-  }));
   // 🧠 Combine learners and mentors.
   // ❗ At this point the learner objects only have the mentors' IDs.
   // ❗ Fix the `learners` array so that each learner ends up with this exact structure:
@@ -56,6 +31,17 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
   //     "Grace Hopper"
   //   ]`
   // }
+  const formattedData = []
+  learnersRes.forEach(learner => {
+    const result = {
+      ...learner,
+      mentors: learner.mentors.map(mID => {
+        const mentor = mentorsRes.find(mentorObj => mentorObj.id == mID)
+        return mentor.firstName + " " + mentor.lastName 
+      })
+    }
+    formattedData.push(result)
+  })
 
   // 👆 ==================== TASK 2 END ====================== 👆
 
@@ -65,45 +51,8 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
 
 
   // 👇 ==================== TASK 3 START ==================== 👇
-  for (let learner of learners) { 
-learners.forEach(learner => {
-  
-  const card = document.createElement('div');
-  card.classList.add('learner-card'); 
 
-  const heading = document.createElement('h3');
-  heading.textContent = learner.fullName;
-  heading.classList.add('learner-name'); 
-
- 
-  const email = document.createElement('div');
-  email.textContent = learner.email;
-  email.classList.add('learner-email'); 
-
-  
-  const mentorsHeading = document.createElement('h4');
-  mentorsHeading.textContent = 'Mentors';
-  mentorsHeading.classList.add('mentors-heading'); 
-
-  
-  const mentorsList = document.createElement('ul');
-  mentorsList.classList.add('mentors-list'); 
-
-  learner.mentors.forEach(mentorName => {
-    const mentorItem = document.createElement('li');
-    mentorItem.textContent = mentorName;
-    mentorItem.classList.add('mentor-item'); 
-    mentorsList.appendChild(mentorItem);
-  });
-
-  card.appendChild(heading);
-  card.appendChild(email);
-  card.appendChild(mentorsHeading);
-  card.appendChild(mentorsList);
-
-  document.body.appendChild(card);
-});
-  
+  formattedData.forEach(learner => { // looping over each learner object
 
     // 🧠 Flesh out the elements that describe each learner
     // ❗ Give the elements below their (initial) classes, textContent and proper nesting.
@@ -118,6 +67,20 @@ learners.forEach(learner => {
     const mentorsHeading = document.createElement('h4')
     const mentorsList = document.createElement('ul')
 
+    card.appendChild(heading)
+    card.appendChild(email)
+    card.appendChild(mentorsHeading)
+    learner.mentors.forEach(mentorName => {
+      const li = document.createElement('li')
+      li.textContent = mentorName
+      mentorsList.appendChild(li)
+    })
+
+    card.classList.add("card")
+    heading.textContent = learner.fullName
+    email.textContent = learner.email
+    mentorsHeading.textContent = "Mentors"
+    mentorsHeading.classList.add('closed')
     // 👆 ==================== TASK 3 END ====================== 👆
 
     // 👆 WORK ONLY ABOVE THIS LINE 👆
@@ -163,7 +126,7 @@ learners.forEach(learner => {
       }
     })
   }
-
+)
   const footer = document.querySelector('footer')
   const currentYear = new Date().getFullYear()
   footer.textContent = `© BLOOM INSTITUTE OF TECHNOLOGY ${currentYear}`
